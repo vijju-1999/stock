@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Smart Stock Dashboard PRO+</title>
+
+  <!-- External Assets -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-dark: #2563eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --bg-light: #f8fafc;
+      --card-light: rgba(255, 255, 255, 0.8);
+      --text-light: #1e293b;
+      --text-muted: #64748b;
+
+      --bg-dark: #0f172a;
+      --card-dark: rgba(30, 41, 59, 0.8);
+      --text-dark: #f8fafc;
+
+      --radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-light);
+      background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.05) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+      color: var(--text-light);
+      min-height: 100vh;
+      transition: var(--transition);
+      overflow-x: hidden;
+    }
+
+    body.dark {
+      background-color: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+    }
+
+    /* --- Animations --- */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .animate-fade {
+      animation: fadeIn 0.5s ease forwards;
+    }
+
+    /* --- Utility --- */
+    .hidden {
+      display: none !important;
+    }
+
+    .glass {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* --- Header --- */
+    header {
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-light);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .dark header {
+      background: var(--card-dark);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--primary);
+    }
+
+    .live-indicator {
+      font-size: 0.8rem;
+      color: var(--success);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-weight: 600;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    /* --- Auth Container --- */
+    #authContainer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: calc(100vh - 100px);
+      padding: 2rem;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 450px;
+      background: white;
+      padding: 2.5rem;
+      border-radius: var(--radius);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      transition: var(--transition);
+    }
+
+    .dark .auth-card {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .auth-title {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .auth-title h2 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .auth-title p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .input-group label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .auth-input {
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      font-size: 1rem;
+      transition: var(--transition);
+      background: #f8fafc;
+    }
+
+    .dark .auth-input {
+      background: #334155;
+      border-color: #475569;
+      color: white;
+    }
+
+    .auth-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .auth-btn {
+      background: var(--primary);
+      color: white;
+      padding: 0.8rem;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-top: 0.5rem;
+    }
+
+    .auth-btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .auth-switch {
+      text-align: center;
+      font-size: 0.9rem;
+      margin-top: 1.5rem;
+      color: var(--text-muted);
+    }
+
+    .auth-link {
+      color: var(--primary);
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+
+    .auth-msg {
+      padding: 0.8rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .auth-msg.error {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    .auth-msg.success {
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+
+    /* --- Dashboard Layout --- */
+    .dashboard-container {
+      padding: 1.5rem 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      align-items: center;
+    }
+
+    .control-item {
+      background: white;
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      font-size: 0.9rem;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+
+    .dark .control-item {
+      background: #1e293b;
+      border-color: #334155;
+      color: white;
+    }
+
+    select.control-item,
+    input.control-item {
+      appearance: none;
+      outline: none;
+    }
+
+    .btn {
+      padding: 0.5rem 1.25rem;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-outline:hover {
+      background: rgba(59, 130, 246, 0.05);
+    }
+
+    /* --- Main Grid --- */
+    .main-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      transition: var(--transition);
+      border: 1px solid transparent;
+    }
+
+    .dark .card {
+      background: #1e293b;
+      border-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .col-8 {
+      grid-column: span 8;
+    }
+
+    .col-6 {
+      grid-column: span 6;
+    }
+
+    .col-4 {
+      grid-column: span 4;
+    }
+
+    .col-12 {
+      grid-column: span 12;
+    }
+
+    @media (max-width: 1024px) {
+
+      .col-8,
+      .col-6,
+      .col-4 {
+        grid-column: span 12;
+      }
+    }
+
+    /* --- Metrics --- */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .metric-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .metric-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .metric-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .confidence-bar {
+      height: 10px;
+      background: #e2e8f0;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 0.5rem;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--success));
+      width: 0%;
+      transition: width 1s ease;
+    }
+
+    /* --- Portfolio & Heatmap --- */
+    .list-unstyled {
+      list-style: none;
+    }
+
+    .portfolio-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .dark .portfolio-item {
+      border-bottom-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .heatmap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .heatmap-cell {
+      padding: 1rem;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    /* --- Footer --- */
+    footer {
+      text-align: center;
+      padding: 1.5rem 1rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* --- Toggles --- */
+    .theme-toggle {
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-light);
+      border: 1px solid #e2e8f0;
+    }
+
+    .dark .theme-toggle {
+      background: #334155;
+      border-color: #475569;
+    }
+  </style>
+</head>
+
+<body class="light">
+
+  <header>
+    <div class="logo">
+      <i class="fas fa-chart-line"></i>
+      <span>AI Stock<b>PRO+</b></span>
+    </div>
+    <div class="header-actions" style="display: flex; gap: 1rem; align-items: center;">
+      <div class="live-indicator">
+        <div class="live-dot"></div>
+        <span>LIVE MARKET</span>
+      </div>
+      <div class="theme-toggle" onclick="toggleDarkMode()">
+        <i class="fas fa-moon"></i>
+      </div>
+      <div id="userProfile" class="hidden">
+        <button class="btn btn-outline" onclick="logoutUser()">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Auth Section -->
+    <div id="authContainer">
+      <!-- Login -->
+      <div id="loginFormContainer" class="auth-card animate-fade">
+        <div class="auth-title">
+          <h2>Welcome Back</h2>
+          <p>Enter your details to access your dashboard</p>
+        </div>
+        <div id="loginMsg" class="auth-msg hidden"></div>
+        <form id="loginForm" class="auth-form">
+          <div class="input-group">
+            <label>Username</label>
+            <input type="text" id="loginUsername" class="auth-input" placeholder="Enter username" required>
+          </div>
+          <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="loginPassword" class="auth-input" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="auth-btn">Sign In</button>
+        </form>
+        <div class="auth-switch">
+          Don't have an account? <span class="auth-link" onclick="switchTab('register')">Register here</span>
+        </div>
+      </div>
+
+      <!-- Register -->
+      <div id="registerFormContainer" class="auth-card animate-fade hidden">
+        <div class="auth-title">
+          <h2>Create Account</h2>
+          <p>Join AI Stock PRO+ today</p>
+        </div>
+        <div id="registerMsg" class="auth-msg hidden"></div>
+        <form id="registerForm" class="auth-form">
+          <div class="input-group">
+            <label>Full Name</label>
+            <input type="text" id="registerName" class="auth-input" placeholder="John Doe" required>
+          </div>
+          <div class="input-group">
+            <label>Email Address</label>
+            <input type="email" id="registerEmail" class="auth-input" placeholder="john@example.com" required>
+          </div>
+          <div class="input-group">
+            <label>Username</label>
+            <input type="text" id="registerUsername" class="auth-input" placeholder="johndoe123" required>
+          </div>
+          <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="registerPassword" class="auth-input" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="auth-btn">Create Account</button>
+        </form>
+        <div class="auth-switch">
+          Already have an account? <span class="auth-link" onclick="switchTab('login')">Login here</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard Section -->
+    <div id="dashboardSection" class="dashboard-container hidden">
+      <div class="controls animate-fade">
+        <div style="position: relative;">
+          <label for="csvFile" class="btn btn-outline">
+            <i class="fas fa-upload"></i> Import CSV
+          </label>
+          <input type="file" id="csvFile" accept=".csv" style="position: absolute; opacity: 0; width: 0; height: 0;">
+        </div>
+
+        <select id="companySelect" class="control-item" onchange="loadCompanyData(this.value)">
+          <option value="">Select Company</option>
+          <option value="google">Google (GOOGL)</option>
+          <option value="microsoft">Microsoft (MSFT)</option>
+          <option value="hcl">HCL Tech</option>
+        </select>
+
+        <select id="rangeSelect" class="control-item" onchange="changeRange(this.value)">
+          <option value="20">Last 20 Days</option>
+          <option value="14">Last 14 Days</option>
+          <option value="7">Last 7 Days</option>
+        </select>
+
+        <input type="number" id="alertPrice" class="control-item" placeholder="Alert Price Target">
+
+        <button class="btn btn-primary" onclick="predictStock()">
+          <i class="fas fa-robot"></i> Predict
+        </button>
+        <button class="btn btn-outline" onclick="generateNewData()">
+          <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+        <button id="liveBtn" class="btn btn-success" onclick="toggleLive()">
+          <i class="fas fa-play"></i> Start Live
+        </button>
+        <button class="btn btn-primary" onclick="multiStockCompare()">
+          <i class="fas fa-columns"></i> Comparison
+        </button>
+        <button class="btn btn-outline" onclick="downloadCSV()">
+          <i class="fas fa-download"></i> Export
+        </button>
+      </div>
+
+      <div class="main-grid animate-fade">
+        <!-- Metrics and Summary -->
+        <div class="col-12 card">
+          <div class="metrics-grid" id="metricsDisplay">
+            <!-- Metric cards will be injected here -->
+          </div>
+        </div>
+
+        <!-- Main Chart -->
+        <div class="col-6 card" style="height: 50vh; display: flex; flex-direction: column;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <h3 style="font-size: 1rem;">Market Performance</h3>
+            <div id="chartStatus" class="metric-label">All Indicators Active</div>
+          </div>
+          <canvas id="stockChart"></canvas>
+        </div>
+
+        <!-- Portfolio Sidebar -->
+        <div class="col-6 card">
+          <h3>Portfolio Tracker</h3>
+          <div class="auth-form" style="margin-top: 1rem;">
+            <input id="stockName" class="auth-input" placeholder="Stock Symbol">
+            <input id="stockQty" type="number" class="auth-input" placeholder="Quantity">
+            <button class="btn btn-primary" style="width: 100%;" onclick="addPortfolio()">
+              <i class="fas fa-plus"></i> Add to Portfolio
+            </button>
+          </div>
+          <div style="margin-top: 2rem;">
+            <h4 style="font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase;">Your Assets</h4>
+            <ul id="portfolioList" class="list-unstyled" style="margin-top: 0.5rem;">
+              <!-- Portfolio items injected here -->
+            </ul>
+          </div>
+        </div>
+
+        <!-- Sector Heatmap -->
+        <div class="col-12 card">
+          <h3>Sector Performance Heatmap</h3>
+          <div id="sectorHeatmap" class="heatmap-grid">
+            <!-- Heatmap cells injected here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2024 AI Smart Stock Dashboard PRO+. Powered by Analytics Engine v4.0</p>
+    <p style="font-size: 0.8rem; margin-top: 0.5rem; opacity: 0.5;">Financial data is simulated for demonstration
+      purposes.</p>
+  </footer>
+
+  <script>
+    // --- State Management ---
+    let fullData = [];
+    let prices = [];
+    let chart = null;
+    let liveTimer = null;
+    let isLive = false;
+
+    const STORAGE_USERS_KEY = 'stockDashboardUsers';
+    const STORAGE_LOGIN_KEY = 'stockDashboardLoggedInUser';
+    const STORAGE_PORTFOLIO_KEY = 'stockDashboardPortfolio_'; // Will append username
+
+    let registeredUsers = JSON.parse(localStorage.getItem(STORAGE_USERS_KEY) || '[]');
+    let currentUser = null;
+
+    const companyData = {
+      google: [142.5, 145.2, 147.8, 149.1, 150.5, 152.3, 151.7, 154.2, 156.8, 158.4, 160.1, 162.5, 165.2, 167.3, 168.9, 170.2, 172.5, 175.8, 177.1, 180.5],
+      microsoft: [310.2, 312.5, 315.8, 317.4, 320.1, 322.6, 325.3, 328.7, 330.2, 332.5, 335.8, 337.1, 340.5, 342.8, 345.2, 348.1, 350.5, 352.3, 355.8, 358.2],
+      hcl: [1200, 1215, 1225, 1230, 1240, 1255, 1260, 1275, 1285, 1290, 1305, 1310, 1325, 1335, 1340, 1355, 1360, 1375, 1385, 1400]
+    };
+
+    // --- Initialization ---
+    window.addEventListener('load', () => {
+      const savedUsername = localStorage.getItem(STORAGE_LOGIN_KEY);
+      if (savedUsername) {
+        const user = registeredUsers.find(u => u.username === savedUsername);
+        if (user) {
+          currentUser = user;
+          showDashboard();
+        } else {
+          showAuth();
+        }
+      } else {
+        showAuth();
+      }
+      renderHeatmap();
+    });
+
+    // --- Auth Functions ---
+    function switchTab(tab) {
+      const login = document.getElementById('loginFormContainer');
+      const register = document.getElementById('registerFormContainer');
+      if (tab === 'login') {
+        login.classList.remove('hidden');
+        register.classList.add('hidden');
+      } else {
+        login.classList.add('hidden');
+        register.classList.remove('hidden');
+      }
+    }
+
+    function showAuth() {
+      document.getElementById('authContainer').classList.remove('hidden');
+      document.getElementById('dashboardSection').classList.add('hidden');
+      document.getElementById('userProfile').classList.add('hidden');
+      document.querySelector('footer').classList.add('hidden');
+      switchTab('login');
+    }
+
+    function showDashboard() {
+      document.getElementById('authContainer').classList.add('hidden');
+      document.getElementById('dashboardSection').classList.remove('hidden');
+      document.getElementById('userProfile').classList.remove('hidden');
+      document.querySelector('footer').classList.remove('hidden');
+
+      if (prices.length === 0) loadCompanyData('google');
+      loadPortfolio();
+      predictStock();
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const user = document.getElementById('loginUsername').value.trim();
+      const pass = document.getElementById('loginPassword').value;
+      const msg = document.getElementById('loginMsg');
+
+      const found = registeredUsers.find(u => u.username === user && u.password === pass);
+      if (found) {
+        currentUser = found;
+        localStorage.setItem(STORAGE_LOGIN_KEY, user);
+        msg.classList.add('hidden');
+        showDashboard();
+      } else {
+        msg.textContent = 'Invalid username or password';
+        msg.className = 'auth-msg error';
+        msg.classList.remove('hidden');
+      }
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('registerName').value.trim();
+      const email = document.getElementById('registerEmail').value.trim();
+      const user = document.getElementById('registerUsername').value.trim();
+      const pass = document.getElementById('registerPassword').value;
+      const msg = document.getElementById('registerMsg');
+
+      if (registeredUsers.some(u => u.username === user)) {
+        msg.textContent = 'Username already exists';
+        msg.className = 'auth-msg error';
+        msg.classList.remove('hidden');
+        return;
+      }
+
+      registeredUsers.push({ name, email, username: user, password: pass });
+      localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(registeredUsers));
+
+      msg.textContent = 'Registration successful! Please login.';
+      msg.className = 'auth-msg success';
+      msg.classList.remove('hidden');
+
+      setTimeout(() => switchTab('login'), 1500);
+    });
+
+    function logoutUser() {
+      stopLive();
+      localStorage.removeItem(STORAGE_LOGIN_KEY);
+      currentUser = null;
+      showAuth();
+    }
+
+    // --- Data Logic ---
+    document.getElementById("csvFile").addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = evt => {
+        const rows = evt.target.result.split("\n").slice(1);
+        fullData = rows.map(r => parseFloat(r.split(",")[1])).filter(v => !isNaN(v));
+        prices = [...fullData];
+        predictStock();
+      };
+      reader.readAsText(file);
+    });
+
+    function loadCompanyData(c) {
+      if (companyData[c]) {
+        fullData = [...companyData[c]];
+        prices = [...fullData];
+        predictStock();
+      }
+    }
+
+    function changeRange(d) {
+      prices = fullData.slice(-d);
+      predictStock();
+    }
+
+    function generateNewData() {
+      if (prices.length === 0) return;
+      const last = prices[prices.length - 1];
+      const change = (Math.random() * 8) - 4; // -4 to +4
+      prices.push(last + change);
+      if (prices.length > 30) prices.shift(); // Keep window manageable
+      predictStock();
+    }
+
+    function toggleLive() {
+      const btn = document.getElementById('liveBtn');
+      if (isLive) {
+        stopLive();
+        btn.innerHTML = '<i class="fas fa-play"></i> Start Live';
+        btn.className = 'btn btn-success';
+      } else {
+        startLive();
+        btn.innerHTML = '<i class="fas fa-stop"></i> Stop Live';
+        btn.className = 'btn btn-outline';
+      }
+    }
+
+    function startLive() {
+      isLive = true;
+      if (!liveTimer) liveTimer = setInterval(generateNewData, 2000);
+    }
+
+    function stopLive() {
+      isLive = false;
+      clearInterval(liveTimer);
+      liveTimer = null;
+    }
+
+    // --- Analysis Functions ---
+    function SMA(data, n) {
+      return data.map((_, i) => {
+        if (i < n - 1) return null;
+        let sum = 0;
+        for (let j = 0; j < n; j++) sum += data[i - j];
+        return sum / n;
+      });
+    }
+
+    function EMA(data, n) {
+      let k = 2 / (n + 1);
+      let ema = [data[0]];
+      for (let i = 1; i < data.length; i++) {
+        ema.push(data[i] * k + ema[i - 1] * (1 - k));
+      }
+      return ema;
+    }
+
+    function RSI(data) {
+      if (data.length < 2) return 50;
+      let gains = 0, losses = 0;
+      for (let i = 1; i < data.length; i++) {
+        let diff = data[i] - data[i - 1];
+        if (diff >= 0) gains += diff;
+        else losses -= Math.abs(diff);
+      }
+      let avgGain = gains / data.length;
+      let avgLoss = Math.abs(losses) / data.length;
+      if (avgLoss === 0) return 100;
+      let rs = avgGain / avgLoss;
+      return (100 - (100 / (1 + rs))).toFixed(2);
+    }
+
+    function predictStock() {
+      if (prices.length < 5) return;
+
+      const last = prices.at(-1);
+      const ema5 = EMA(prices, 5).at(-1);
+      const rsi = RSI(prices);
+      const support = Math.min(...prices);
+      const resistance = Math.max(...prices);
+      const confidence = (last > ema5) ? 85 : 45;
+
+      const metricsHtml = `
+                <div class="metric-card">
+                    <span class="metric-label">Last Price</span>
+                    <span class="metric-value">$${last.toFixed(2)}</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">EMA (5 Day)</span>
+                    <span class="metric-value">$${ema5.toFixed(2)}</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">RSI Index</span>
+                    <span class="metric-value">${rsi}</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Resistance</span>
+                    <span class="metric-value">$${resistance.toFixed(2)}</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Investment Confidence</span>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: ${confidence}%"></div>
+                    </div>
+                </div>
+                <div id="alertToast" class="metric-card hidden" style="background: var(--warning); padding: 0.5rem; border-radius: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 700;"><i class="fas fa-bell"></i> TARGET HIT!</span>
+                </div>
+            `;
+
+      document.getElementById("metricsDisplay").innerHTML = metricsHtml;
+      checkAlert(last);
+      drawChart();
+    }
+
+    function drawChart() {
+      const ctx = document.getElementById("stockChart");
+      if (chart) chart.destroy();
+
+      const isDark = document.body.classList.contains('dark');
+      const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+      const textColor = isDark ? '#94a3b8' : '#64748b';
+
+      chart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: prices.map((_, i) => "Day " + (i + 1)),
+          datasets: [
+            {
+              label: "Market Price",
+              data: prices,
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              fill: true,
+              tension: 0.4
+            },
+            {
+              label: "SMA5",
+              data: SMA(prices, 5),
+              borderColor: '#10b981',
+              borderDash: [5, 5],
+              pointRadius: 0
+            },
+            {
+              label: "EMA5",
+              data: EMA(prices, 5),
+              borderColor: '#f59e0b',
+              borderDash: [2, 2],
+              pointRadius: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top', labels: { color: textColor, font: { family: 'Inter' } } }
+          },
+          scales: {
+            x: { grid: { color: gridColor }, ticks: { color: textColor } },
+            y: { grid: { color: gridColor }, ticks: { color: textColor } }
+          }
+        }
+      });
+    }
+
+    function multiStockCompare() {
+      const gStart = companyData.google[0], gEnd = companyData.google.at(-1);
+      const mStart = companyData.microsoft[0], mEnd = companyData.microsoft.at(-1);
+      const gGrowth = ((gEnd - gStart) / gStart * 100).toFixed(2);
+      const mGrowth = ((mEnd - mStart) / mStart * 100).toFixed(2);
+
+      if (chart) chart.destroy();
+      const ctx = document.getElementById("stockChart");
+      chart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: Array.from({ length: 20 }, (_, i) => "Day " + (i + 1)),
+          datasets: [
+            { label: "Google", data: companyData.google, borderColor: '#4285F4' },
+            { label: "Microsoft", data: companyData.microsoft, borderColor: '#F25022' }
+          ]
+        },
+        options: { maintainAspectRatio: false }
+      });
+
+      document.getElementById("metricsDisplay").innerHTML = `
+                <div class="metric-card"><h3>Google Growth: ${gGrowth}%</h3></div>
+                <div class="metric-card"><h3>Microsoft Growth: ${mGrowth}%</h3></div>
+                <div class="metric-card"><h3>Best Performer: ${gGrowth > mGrowth ? 'Google' : 'Microsoft'}</h3></div>
+            `;
+    }
+
+    function checkAlert(price) {
+      const target = parseFloat(document.getElementById("alertPrice").value);
+      const toast = document.getElementById("alertToast");
+      if (target && price >= target) {
+        toast.classList.remove('hidden');
+      } else {
+        toast.classList.add('hidden');
+      }
+    }
+
+    function downloadCSV() {
+      let csv = "Day,Price\n";
+      prices.forEach((p, i) => csv += `${i + 1},${p}\n`);
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "stock_data.csv";
+      a.click();
+    }
+
+    function toggleDarkMode() {
+      const body = document.body;
+      body.classList.toggle("dark");
+      const icon = document.querySelector('.theme-toggle i');
+      if (body.classList.contains('dark')) {
+        icon.className = 'fas fa-sun';
+      } else {
+        icon.className = 'fas fa-moon';
+      }
+      if (chart) drawChart();
+    }
+
+    // --- Portfolio Persistence ---
+    function addPortfolio() {
+      const name = document.getElementById("stockName").value.toUpperCase();
+      const qty = document.getElementById("stockQty").value;
+      if (!name || !qty) return;
+
+      const key = STORAGE_PORTFOLIO_KEY + currentUser.username;
+      let portfolio = JSON.parse(localStorage.getItem(key) || '[]');
+      portfolio.push({ name, qty });
+      localStorage.setItem(key, JSON.stringify(portfolio));
+
+      renderPortfolio();
+      document.getElementById("stockName").value = '';
+      document.getElementById("stockQty").value = '';
+    }
+
+    function loadPortfolio() {
+      renderPortfolio();
+    }
+
+    function renderPortfolio() {
+      const key = STORAGE_PORTFOLIO_KEY + currentUser.username;
+      const portfolio = JSON.parse(localStorage.getItem(key) || '[]');
+      const list = document.getElementById("portfolioList");
+      list.innerHTML = '';
+
+      portfolio.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.className = 'portfolio-item';
+        li.innerHTML = `
+                    <span><strong>${item.name}</strong> (${item.qty} units)</span>
+                    <button onclick="removePortfolio(${index})" style="background:none; border:none; color:var(--danger); cursor:pointer;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+        list.appendChild(li);
+      });
+    }
+
+    function removePortfolio(index) {
+      const key = STORAGE_PORTFOLIO_KEY + currentUser.username;
+      let portfolio = JSON.parse(localStorage.getItem(key) || '[]');
+      portfolio.splice(index, 1);
+      localStorage.setItem(key, JSON.stringify(portfolio));
+      renderPortfolio();
+    }
+
+    // --- Heatmap ---
+    function renderHeatmap() {
+      const sectors = ["Technology", "Healthcare", "Finance", "Energy", "Retail", "Utilities"];
+      const grid = document.getElementById("sectorHeatmap");
+      grid.innerHTML = '';
+
+      sectors.forEach(s => {
+        const perf = (Math.random() * 6 - 3).toFixed(2); // -3% to +3%
+        const cell = document.createElement('div');
+        cell.className = 'heatmap-cell';
+        cell.style.background = perf > 0 ? `rgba(16, 185, 129, ${Math.abs(perf) / 3})` : `rgba(239, 68, 68, ${Math.abs(perf) / 3})`;
+        cell.style.color = Math.abs(perf) > 1.5 ? 'white' : 'inherit';
+        cell.innerHTML = `<div>${s}</div><div>${perf}%</div>`;
+        grid.appendChild(cell);
+      });
+    }
+  </script>
+</body>
+
+</html>
